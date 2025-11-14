@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>⌨️ StadianType — Infinite Omni v8</title>
+  <title>⌨️ StadianType — Infinite Omni v9</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
@@ -16,7 +16,11 @@
       --glass-border: rgba(255, 255, 255, 0.1);
       --text-main: #f0f0f0; 
       --text-sub: #666;
+      
+      /* Default Accent */
       --primary: #f43f5e; /* Rose Neon */
+      --active-text: #000000; /* Teks pada tombol aktif di dark mode */
+      
       --correct: #f0f0f0;
       --incorrect: #ff3333;
       --cursor: #f43f5e;
@@ -34,7 +38,10 @@
       --glass-border: rgba(0, 0, 0, 0.05);
       --text-main: #0f172a;
       --text-sub: #94a3b8;
+      
       --primary: #0ea5e9; /* Sky Blue */
+      --active-text: #ffffff; /* Teks pada tombol aktif di light mode */
+      
       --correct: #0f172a;
       --incorrect: #ef4444;
       --cursor: #0ea5e9;
@@ -84,9 +91,18 @@
       font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 8px;
     }
     button:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
-    button.active { color: var(--bg); background: var(--primary); }
-    button[data-val="free"].active { background: #10b981; color: white; }
-    button[data-val="hell"].active { background: #ff0000; color: white; box-shadow: 0 0 10px red; }
+    
+    /* --- ACTIVE STATE STYLING (Warna Teks Berbeda Sesuai Tema) --- */
+    button.active { 
+      background: var(--primary); 
+      color: var(--active-text); /* Warna teks kontras */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Specific Button Colors */
+    button[data-val="free"].active { background: #10b981; color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+    button[data-val="hell"].active { background: #ff0000; color: white; box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
+    button[data-val="symbols"].active { background: #8b5cf6; color: white; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
 
     /* Typing Area */
     #typing-area {
@@ -113,7 +129,7 @@
     }
     #custom-time-input.show { display: block; }
 
-    /* Live Stats Overlay (Background WPM) */
+    /* Live Stats Overlay */
     .live-stats-overlay {
       position: absolute; top: 15%; width: 100%; text-align: center;
       font-size: 120px; font-weight: 800; color: var(--primary); 
@@ -169,7 +185,7 @@
 
   <header>
     <div class="brand">
-      <span>⌨️</span> StadianType <span style="font-size: 10px; background: var(--primary); color: var(--bg); padding: 3px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 1px;">OMNI v8</span>
+      <span>⌨️</span> StadianType <span style="font-size: 10px; background: var(--primary); color: var(--bg); padding: 3px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 1px;">OMNI v9</span>
     </div>
     <div style="display:flex; gap:10px">
       <button id="theme-btn" onclick="toggleTheme()">🌙</button>
@@ -184,6 +200,7 @@
       <button onclick="setMode('quotes')">Quotes</button>
       <button onclick="setMode('story')">Story</button>
       <button onclick="setMode('numbers')">Numbers</button>
+      <button onclick="setMode('symbols')" data-val="symbols">Symbols</button>
       <button onclick="setMode('free')" data-val="free">Free 🧘</button>
     </div>
     <div class="divider"></div>
@@ -335,49 +352,63 @@ function generateContent() {
     for(let i=0; i<3; i++) arr = arr.concat(genStory(CFG.lang).split(' '));
   }
   else if (CFG.mode === 'numbers') {
-    // MODE NUMBER: Kombinasi Kalimat + Angka
     for(let i=0; i<5; i++) {
        let sent = genSentence(CFG.lang).split(' ');
-       // Inject numbers into the sentence randomly
        sent = sent.map(w => {
          if (Math.random() > 0.65) {
-            // Replace word with a number context (Year, Amount, Code)
             const rnd = Math.random();
-            if(rnd > 0.7) return Math.floor(Math.random() * 2025).toString(); // Year-like
-            if(rnd > 0.4) return (Math.floor(Math.random() * 10000) / 100).toFixed(2); // Decimal
-            return Math.floor(Math.random() * 100).toString(); // Simple int
+            if(rnd > 0.7) return Math.floor(Math.random() * 2025).toString(); 
+            if(rnd > 0.4) return (Math.floor(Math.random() * 10000) / 100).toFixed(2);
+            return Math.floor(Math.random() * 100).toString();
          }
          return w;
        });
        arr = arr.concat(sent);
     }
   }
+  else if (CFG.mode === 'symbols') {
+    // Mode Simbol: Mencampur kata dengan karakter khusus
+    const syms = ['@','#','$','%','^','&','*','(',')','{','}','[',']','<','>','?','/','|','+','='];
+    for(let i=0; i<60; i++) {
+      let w = rand(d.vocab);
+      const s = rand(syms);
+      // Random pattern: Prefix, Suffix, or Wrap
+      const type = Math.random();
+      if (type < 0.3) w = s + w;
+      else if (type < 0.6) w = w + s;
+      else w = s + w + s;
+      arr.push(w);
+    }
+  }
   else if (CFG.mode === 'free') {
     for(let i=0; i<100; i++) arr.push(rand(d.vocab));
   }
   else {
+    // Words Mode
     for(let i=0; i<80; i++) arr.push(rand(d.vocab));
   }
 
   // --- DIFFICULTY LOGIC ---
   return arr.map(w => {
+    // EASY: Clean, lowercase (Special Handling for Symbols Mode)
     if (CFG.diff === 'easy') {
+      if (CFG.mode === 'symbols') return w.toLowerCase(); // Don't strip symbols
       return w.toLowerCase().replace(/[^a-z0-9]/gi, '');
     }
+    // NORMAL: Standard
     if (CFG.diff === 'normal') {
-      // Word mode: clean. Others: keep punctuation logic from generators
-      if (CFG.mode === 'words') {
-         if (Math.random() > 0.9) return w.charAt(0).toUpperCase() + w.slice(1);
-         return w.replace(/[^a-zA-Z0-9]/g, '');
-      }
+      if (CFG.mode === 'words' && Math.random() > 0.9) return w.charAt(0).toUpperCase() + w.slice(1);
+      if (CFG.mode === 'words') return w.replace(/[^a-zA-Z0-9]/g, '');
       return w;
     }
+    // HARD: Title Case, Punctuation
     if (CFG.diff === 'hard') {
       if (Math.random() > 0.4) w = w.charAt(0).toUpperCase() + w.slice(1);
       if (Math.random() > 0.7) w += [',',';',':','-','?','!','.'][Math.floor(Math.random()*7)];
       if (Math.random() > 0.9) w = `"${w}"`;
       return w;
     }
+    // HELL: Chaos
     if (CFG.diff === 'hell') {
       w = w.split('').map(c => Math.random()>0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
       if (Math.random() > 0.6) w += ['#','@','!','1','='][Math.floor(Math.random()*5)];
