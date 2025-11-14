@@ -3,552 +3,575 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>⌨️ StadianType — Ultimate</title>
+  <title>⌨️ StadianType — Infinite Omni v8</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      /* Dark Theme (Default) */
-      --bg: #121212;
-      --glass: rgba(30, 30, 30, 0.6);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --text-main: #e0e0e0; 
-      --text-sub: #5c5c5c;
-      --primary: #fca311;
-      --correct: #e0e0e0;
-      --incorrect: #ff4d4d;
-      --cursor: #fca311;
-      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      /* DARK MODE VARIABLES */
+      --bg: #050505;
+      --glass: rgba(20, 20, 20, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f0f0f0; 
+      --text-sub: #666;
+      --primary: #f43f5e; /* Rose Neon */
+      --correct: #f0f0f0;
+      --incorrect: #ff3333;
+      --cursor: #f43f5e;
+      --shadow: 0 10px 40px 0 rgba(244, 63, 94, 0.2);
+      --chart-line: #f43f5e;
+      --chart-fill: rgba(244, 63, 94, 0.1);
+      --wpm-bg-opacity: 0.25; 
+      --wpm-bg-glow: 0 0 80px rgba(244, 63, 94, 0.4);
     }
 
     [data-theme="light"] {
-      --bg: #f0f2f5;
-      --glass: rgba(255, 255, 255, 0.7);
+      /* LIGHT MODE VARIABLES */
+      --bg: #f8fafc;
+      --glass: rgba(255, 255, 255, 0.9);
       --glass-border: rgba(0, 0, 0, 0.05);
-      --text-main: #1a1a1a;
-      --text-sub: #a0a0a0;
-      --primary: #2563eb;
-      --correct: #1a1a1a;
-      --incorrect: #dc2626;
-      --cursor: #2563eb;
-      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+      --text-main: #0f172a;
+      --text-sub: #94a3b8;
+      --primary: #0ea5e9; /* Sky Blue */
+      --correct: #0f172a;
+      --incorrect: #ef4444;
+      --cursor: #0ea5e9;
+      --shadow: 0 8px 32px 0 rgba(14, 165, 233, 0.15);
+      --chart-line: #0ea5e9;
+      --chart-fill: rgba(14, 165, 233, 0.1);
+      --wpm-bg-opacity: 0.1;
+      --wpm-bg-glow: 0 0 30px rgba(14, 165, 233, 0.2);
     }
 
-    * { box-sizing: border-box; transition: background 0.3s, color 0.2s; }
-    
+    * { box-sizing: border-box; transition: background 0.3s, color 0.2s, opacity 0.3s; }
     body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Outfit', sans-serif;
-      margin: 0; height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      overflow: hidden;
+      background-color: var(--bg); color: var(--text-main);
+      font-family: 'Outfit', sans-serif; margin: 0; height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
     }
 
-    body::before {
-      content: ''; position: absolute; top: -10%; left: -10%; width: 40vw; height: 40vw;
-      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-      opacity: 0.1; z-index: -1; pointer-events: none; filter: blur(50px);
+    /* Background Animation */
+    .bg-stars {
+      position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: -1;
+      background-image: radial-gradient(var(--text-sub) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.15;
+      animation: drift 120s linear infinite;
     }
+    @keyframes drift { from { background-position: 0 0; } to { background-position: 1000px 1000px; } }
 
-    header {
-      width: 100%; max-width: 1000px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 30px; padding: 0 20px;
-    }
+    /* UI Components */
+    header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; margin-bottom: 20px; padding: 0 20px; z-index: 10; }
     .brand { font-size: 24px; font-weight: 800; display: flex; gap: 10px; align-items: center; }
-    .brand span { color: var(--primary); }
     
     .controls {
-      background: var(--glass); backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      padding: 10px 20px; border-radius: 12px;
-      display: flex; flex-wrap: wrap; gap: 15px;
-      box-shadow: var(--shadow); margin-bottom: 40px;
+      background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);
+      padding: 8px 16px; border-radius: 16px; display: flex; flex-wrap: wrap; gap: 12px;
+      box-shadow: var(--shadow); margin-bottom: 30px; z-index: 10;
+      transform: translateY(0); transition: transform 0.3s, opacity 0.3s;
     }
-
-    .group { display: flex; gap: 5px; align-items: center; }
-    .divider { width: 1px; height: 20px; background: var(--text-sub); opacity: 0.3; margin: 0 5px; }
+    
+    body.free-mode .controls, body.free-mode header, body.free-mode footer, body.free-mode .chart-box { opacity: 0; pointer-events: none; }
+    body.free-mode #typing-area { height: 300px; margin-top: 0; }
+    
+    .group { display: flex; gap: 4px; align-items: center; }
+    .divider { width: 1px; height: 20px; background: var(--text-sub); opacity: 0.3; margin: 0 8px; }
 
     button {
-      background: transparent; border: none; color: var(--text-sub);
-      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
-      cursor: pointer; padding: 5px 10px; border-radius: 6px;
+      background: transparent; border: none; color: var(--text-sub); font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 8px;
     }
-    button:hover { color: var(--text-main); }
+    button:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
     button.active { color: var(--bg); background: var(--primary); }
-    button[data-val="hell"].active { background: #8b0000; color: white; box-shadow: 0 0 10px #ff0000; }
+    button[data-val="free"].active { background: #10b981; color: white; }
+    button[data-val="hell"].active { background: #ff0000; color: white; box-shadow: 0 0 10px red; }
 
+    /* Typing Area */
     #typing-area {
       font-family: 'JetBrains Mono', monospace; font-size: 26px; line-height: 1.6;
-      width: 100%; max-width: 1000px; height: 180px;
-      overflow: hidden; position: relative; outline: none;
-      color: var(--text-sub); cursor: text;
-      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+      width: 100%; max-width: 1100px; height: 160px; overflow: hidden; position: relative;
+      outline: none; color: var(--text-sub); cursor: text;
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%); z-index: 10;
+      transition: all 0.5s ease;
     }
-
     .word { display: inline-block; margin-right: 12px; margin-bottom: 8px; }
     .char { position: relative; }
     .char.correct { color: var(--correct); }
-    .char.incorrect { color: var(--incorrect); border-bottom: 2px solid var(--incorrect); }
+    .char.incorrect { color: var(--incorrect); text-decoration: underline wavy var(--incorrect); }
     .char.active::before {
-      content: ''; position: absolute; left: -2px; top: 2px; bottom: 2px;
-      width: 3px; background: var(--cursor); border-radius: 2px;
-      animation: blink 1s infinite;
+      content: ''; position: absolute; left: -1px; top: 2px; bottom: 2px; width: 2px;
+      background: var(--cursor); border-radius: 2px; animation: blink 1s infinite;
     }
     @keyframes blink { 50% { opacity: 0; } }
 
     #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
     #custom-time-input {
-      background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
-      color: var(--text-main); width: 50px; border-radius: 4px; padding: 4px; display: none;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: var(--text-main);
+      width: 50px; border-radius: 4px; padding: 4px; display: none; font-family: inherit;
     }
     #custom-time-input.show { display: block; }
 
-    .live-stats {
-      font-size: 40px; font-weight: 700; color: var(--primary);
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    /* Live Stats Overlay (Background WPM) */
+    .live-stats-overlay {
+      position: absolute; top: 15%; width: 100%; text-align: center;
+      font-size: 120px; font-weight: 800; color: var(--primary); 
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s; z-index: 0;
+      text-shadow: var(--wpm-bg-glow);
     }
-    .live-stats.show { opacity: 0.05; }
+    .live-stats-overlay.show { opacity: var(--wpm-bg-opacity); }
 
-    footer { margin-top: auto; margin-bottom: 20px; color: var(--text-sub); font-size: 12px; display: flex; gap: 20px; }
-    .key-hint { background: var(--glass-border); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-
-    /* MODAL */
-    .modal-wrap {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+    .bottom-ui {
+      width: 100%; max-width: 1000px; margin-top: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 10;
     }
-    .modal-wrap.show { opacity: 1; pointer-events: auto; }
+    .chart-box {
+      width: 100%; height: 60px; position: relative; overflow: hidden; opacity: 0.6; transition: opacity 0.3s;
+      background: var(--glass); border: 1px solid var(--glass-border); border-radius: 12px; padding: 5px;
+    }
+    .chart-box:hover { opacity: 1; }
+    canvas { width: 100%; height: 100%; }
+
+    footer { display: flex; justify-content: space-between; width: 100%; margin-top: 10px; color: var(--text-sub); font-size: 12px; }
+    .key { background: var(--glass-border); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: monospace;}
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s; z-index: 100;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
     .modal {
-      background: var(--bg); border: 1px solid var(--glass-border);
-      padding: 30px; border-radius: 20px; width: 90%; max-width: 600px;
-      text-align: center; box-shadow: var(--shadow); transform: scale(0.9); transition: transform 0.3s;
+      background: var(--bg); border: 1px solid var(--glass-border); padding: 40px; border-radius: 24px;
+      width: 90%; max-width: 700px; text-align: center; box-shadow: var(--shadow);
+      transform: scale(0.95); transition: transform 0.2s;
     }
-    .modal-wrap.show .modal { transform: scale(1); }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-    .stat-box { background: var(--glass); padding: 15px; border-radius: 10px; }
-    .stat-val { font-size: 32px; font-weight: 800; color: var(--primary); }
-    .stat-label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; }
-    canvas { width: 100%; height: 100px; margin-top: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; }
+    .modal-overlay.show .modal { transform: scale(1); }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }
+    .stat-item { background: var(--glass); padding: 15px; border-radius: 12px; }
+    .stat-val { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .stat-lbl { font-size: 12px; color: var(--text-sub); text-transform: uppercase; margin-top: 5px; letter-spacing: 1px; }
+    
+    #free-hint {
+      position: fixed; bottom: 20px; width: 100%; text-align: center; color: var(--text-sub);
+      font-size: 12px; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+    }
+    body.free-mode #free-hint { opacity: 0.6; }
+
   </style>
 </head>
 <body data-theme="dark">
 
+  <div class="bg-stars"></div>
+
   <header>
     <div class="brand">
-      <span>⌨️</span> StadianType <span style="font-size: 12px; background: var(--primary); color: var(--bg); padding: 2px 6px; border-radius: 4px;">ULTIMATE</span>
+      <span>⌨️</span> StadianType <span style="font-size: 10px; background: var(--primary); color: var(--bg); padding: 3px 8px; border-radius: 20px; font-weight: 800; letter-spacing: 1px;">OMNI v8</span>
     </div>
-    <div>
-      <button id="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
-      <button id="sound-toggle" onclick="toggleSound()">🔊 Sound On</button>
+    <div style="display:flex; gap:10px">
+      <button id="theme-btn" onclick="toggleTheme()">🌙</button>
+      <button id="sound-btn" onclick="toggleSound()">🔊</button>
     </div>
   </header>
 
   <div class="controls">
     <div class="group" id="mode-sel">
       <button class="active" onclick="setMode('words')">Words</button>
+      <button onclick="setMode('sentence')">Sentence</button>
       <button onclick="setMode('quotes')">Quotes</button>
       <button onclick="setMode('story')">Story</button>
       <button onclick="setMode('numbers')">Numbers</button>
-      <button onclick="setMode('symbols')">Symbols</button>
+      <button onclick="setMode('free')" data-val="free">Free 🧘</button>
     </div>
-    
     <div class="divider"></div>
-
     <div class="group" id="diff-sel">
       <button class="active" onclick="setDiff('easy')">Easy</button>
       <button onclick="setDiff('normal')">Normal</button>
       <button onclick="setDiff('hard')">Hard</button>
       <button onclick="setDiff('hell')" data-val="hell">HELL 🔥</button>
     </div>
-
     <div class="divider"></div>
-    
     <div class="group">
       <button onclick="setLang('id')" id="lang-id" class="active">ID</button>
       <button onclick="setLang('en')" id="lang-en">EN</button>
     </div>
-
     <div class="divider"></div>
-
     <div class="group" id="time-sel">
       <button onclick="setTime(15)">15</button>
       <button class="active" onclick="setTime(30)">30</button>
       <button onclick="setTime(60)">60</button>
-      <button onclick="setTime('custom')">Custom</button>
+      <button onclick="setTime('custom')">Set</button>
       <button onclick="setTime('inf')">∞</button>
-      <input type="number" id="custom-time-input" placeholder="Sec" min="1" max="999" onchange="applyCustomTime(this.value)">
+      <input type="number" id="custom-time-input" placeholder="s" min="1" max="9999" onchange="applyCustomTime(this.value)">
     </div>
   </div>
 
-  <div class="live-stats" id="live-wpm">0</div>
-  <div id="typing-area" tabindex="0" onclick="document.getElementById('hidden-input').focus()"></div>
+  <div class="live-stats-overlay" id="live-bg-wpm">0</div>
+
+  <div id="typing-area" tabindex="0" onclick="focusInput()"></div>
   <input type="text" id="hidden-input" autocomplete="off">
 
-  <footer>
-    <div><span class="key-hint">tab</span> restart</div>
-    <div><span class="key-hint">esc</span> menu</div>
-    <div id="timer-display" style="color:var(--primary); font-weight:bold">30s</div>
-  </footer>
-
-  <div class="modal-wrap" id="modal">
-    <div class="modal">
-      <h2 style="margin:0 0 10px;">Result</h2>
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">WPM</div><div class="stat-val" id="res-wpm">0</div></div>
-        <div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-val" id="res-acc">0%</div></div>
-        <div class="stat-box"><div class="stat-label">Characters</div><div class="stat-val" id="res-char" style="font-size:24px;">0/0</div></div>
-        <div class="stat-box"><div class="stat-label">Time</div><div class="stat-val" id="res-time" style="font-size:24px;">30s</div></div>
+  <div class="bottom-ui">
+    <div class="chart-box">
+      <canvas id="live-chart"></canvas>
+    </div>
+    <footer>
+      <div style="display:flex; gap:15px">
+        <span><span class="key">tab</span> restart</span>
+        <span><span class="key">esc</span> menu</span>
       </div>
-      <div style="height:100px;"><canvas id="wpm-chart"></canvas></div>
-      <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
-        <button class="active" onclick="restartGame()" style="padding:10px 30px;">Next Test ➜</button>
-        <button onclick="closeModal()" style="border:1px solid var(--text-sub);">Close</button>
+      <div id="timer-disp" style="color:var(--primary); font-weight:800; font-size:18px">30s</div>
+    </footer>
+  </div>
+  
+  <div id="free-hint">Mode Free: Mengetik bebas tanpa batas waktu. Tekan <b>ESC</b> untuk kembali.</div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 style="color:var(--text-main); margin:0;">Session Result</h2>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-val" id="res-wpm">0</div><div class="stat-lbl">WPM</div></div>
+        <div class="stat-item"><div class="stat-val" id="res-acc">0%</div><div class="stat-lbl">Accuracy</div></div>
+        <div class="stat-item"><div class="stat-val" id="res-raw">0</div><div class="stat-lbl">Raw WPM</div></div>
+        <div class="stat-item"><div class="stat-val" id="res-time">0s</div><div class="stat-lbl">Time</div></div>
+      </div>
+      <div style="height:150px; width:100%; margin-bottom:20px; background:rgba(0,0,0,0.1); border-radius:12px; padding:10px;">
+        <canvas id="res-chart"></canvas>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="active" onclick="restartGame()" style="padding:12px 30px; font-size:14px;">Next Test ➜</button>
+        <button onclick="closeModal()" style="border:1px solid var(--glass-border);">Close</button>
       </div>
     </div>
   </div>
 
 <script>
-/* --- CONFIG & STATE --- */
-const CONFIG = { mode: 'words', diff: 'easy', lang: 'id', time: 30, sound: true };
-const STATE = { active: false, words: [], wordIndex: 0, charIndex: 0, correct: 0, incorrect: 0, startTime: 0, timer: null, wpmHistory: [], customTime: 0 };
+/* --- CONFIGURATION --- */
+const CFG = { mode: 'words', diff: 'easy', lang: 'id', time: 30, sound: true };
+const STATE = { active: false, words: [], wIdx: 0, cIdx: 0, corr: 0, incorr: 0, timer: null, wpmLog: [], customTime: 0 };
 
-/* --- DATABASE KATA YANG DIPERLUAS --- */
-const DATA = {
+/* --- PROCEDURAL CONTENT ENGINE --- */
+const CORPUS = {
   id: {
-    words: [
-      "aku", "kamu", "dia", "mereka", "kita", "pergi", "makan", "minum", "tidur", "jalan", "lari", "baca", "tulis", "kerja", "rumah", "sekolah", "pasar", "buku", "pena", "meja", "kursi", "lampu", "pintu", "jendela", "mobil", "motor", "sepeda", "hari", "bulan", "tahun", "pagi", "siang", "malam", "cepat", "lambat", "besar", "kecil", "panas", "dingin", "merah", "biru", "hijau", "kuning", "hitam", "putih", "suka", "cinta", "benci", "rindu", "harap", "mimpi", "nyata", "teknologi", "komputer", "internet", "jaringan", "sistem", "aplikasi", "data", "informasi", "digital", "koneksi", "server", "program", "algoritma", "logika", "bahasa", "indonesia", "budaya", "seni", "musik", "lagu", "nada", "suara", "gambar", "warna", "bentuk", "ruang", "waktu", "dunia", "bumi", "langit", "bintang", "matahari", "bulan", "planet", "galaksi", "semesta", "alam", "hutan", "laut", "gunung", "sungai", "danau", "pantai", "pasir", "batu", "tanah", "udara", "angin", "hujan", "badai", "petir", "api", "cahaya", "gelap", "bayang", "cermin", "kaca", "besi", "emas", "perak", "uang", "harga", "nilai", "modal", "untung", "rugi", "bisnis", "ekonomi", "politik", "hukum", "adil", "jujur", "benar", "salah", "baik", "buruk", "indah", "jelek", "kuat", "lemah", "sehat", "sakit", "hidup", "mati"
-    ],
-    quotes: [
-      "Sedikit demi sedikit lama-lama menjadi bukit.",
-      "Berakit-rakit ke hulu berenang-renang ke tepian.",
-      "Gantungkan cita-citamu setinggi langit.",
-      "Kebersihan adalah sebagian dari iman.",
-      "Bhinneka Tunggal Ika berbeda-beda tetapi tetap satu.",
-      "Padi makin berisi makin merunduk.",
-      "Di mana bumi dipijak di situ langit dijunjung.",
-      "Tak ada gading yang tak retak.",
-      "Waktu adalah uang jadi jangan sia-siakan.",
-      "Buku adalah jendela dunia yang membuka wawasan.",
-      "Kegagalan adalah keberhasilan yang tertunda."
-    ],
-    story: [
-      "Di sebuah desa yang damai hiduplah seorang pemuda bernama Budi. Budi sangat gemar membaca buku di perpustakaan desa. Setiap sore ia menghabiskan waktu mempelajari ilmu baru dari berbagai belahan dunia. Suatu hari ia menemukan sebuah buku tua yang berisi peta harta karun.",
-      "Indonesia adalah negara kepulauan terbesar di dunia dengan ribuan pulau yang membentang dari Sabang sampai Merauke. Keindahan alamnya sangat memukau mulai dari pantai berpasir putih hingga pegunungan yang menjulang tinggi. Kekayaan budaya dan keramahan penduduknya membuat siapa saja betah.",
-      "Teknologi berkembang sangat pesat dalam satu dekade terakhir. Kini hampir semua orang memiliki ponsel pintar yang terhubung ke internet. Informasi dapat diakses dengan cepat dan mudah dari mana saja. Namun kemajuan ini juga membawa tantangan baru bagi keamanan privasi."
-    ]
+    subjects: ["Seorang ilmuwan","Presiden negara","Kucing liar","Sang pahlawan","Penulis tua","Robot canggih","Petualang","Detektif muda","Nelayan","Raja","Koki handal","Mahasiswa","Naga kuno","Pianis","Astronot","Pemuda desa","Pelukis","Kapten","Ninja","Pedagang"],
+    verbs: ["menemukan","menciptakan","menghancurkan","menganalisis","membangun","melukis","menulis","mengamati","mempelajari","merancang","memperbaiki","melindungi","menyerang","menjaga","mencari","membeli","menjual","menyembunyikan","mengungkap","memimpikan"],
+    objects: ["buku tua","kode rahasia","lagu indah","lukisan misterius","masa depan","teknologi baru","kota hilang","teori konspirasi","sejarah kuno","novel best-seller","puisi cinta","rumus matematika","sistem keamanan","jembatan emas","resep legendaris","hutan terlarang","lautan dalam","pesawat ruang angkasa","harta karun","kebenaran"],
+    adverbs: ["dengan cepat","hati-hati","tanpa ragu","penuh semangat","tengah malam","diam-diam","bijaksana","tiba-tiba","bawah bulan","tengah badai","sangat teliti","otomatis","perlahan","ajaib","tanpa henti"],
+    connectors: ["karena","namun","ketika","setelah","sebelum","agar","walaupun","sambil","sehingga","dan kemudian"],
+    openings: ["Pada suatu hari,","Di galaksi jauh,","Di hutan belantara,","Di masa depan,","Di laboratorium rahasia,","Zaman dahulu,","Di puncak gunung,","Di kedalaman laut,"],
+    concepts: ["kebebasan","cinta","harapan","kebenaran","keadilan","takdir","waktu","mimpi","realitas","pengetahuan"],
+    vocab: ["aku","kamu","kita","mereka","dia","ini","itu","dan","yang","di","ke","dari","untuk","dengan","pada","akan","bisa","ada","tidak","ya","tapi","kalau","jika","saat","lagi","sudah","mau","tahu","lihat","dengar","rasa","pikir","jalan","lari","makan","minum","tidur","bangun","kerja","belajar","main","senang","sedih","marah","takut","berani","cepat","lambat","besar","kecil","panjang","pendek","tinggi","rendah","jauh","dekat","panas","dingin","terang","gelap","bersih","kotor","mahal","murah","bagus","jelek","baru","lama","muda","tua","kaya","miskin","kuat","lemah","sakit","sehat","benar","salah","baik","jahat","adil","curang","indah","buruk","aman","bahaya","penting","bebas","siap","mungkin","pasti","tentu","selalu","sering","jarang","pernah","belum","sedang","masih","hanya","cuma","banyak","sedikit","semua","tiap","lain","sama","beda","sendiri","bersama","siapa","apa","mana","kapan","mengapa","bagaimana","berapa","tolong","maaf","terima","kasih","selamat","halo","hai"]
   },
   en: {
-    words: [
-      "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us", "computer", "system", "coding", "program", "network", "data", "cloud", "server", "client", "web", "internet", "browser", "screen", "keyboard", "mouse", "input", "output", "logic", "design", "create", "build", "develop", "test", "debug", "deploy", "user", "experience", "interface", "digital", "virtual", "reality", "future", "modern", "classic", "simple", "complex", "fast", "slow", "hard", "easy", "learn", "study", "school", "office", "home"
-    ],
-    quotes: [
-      "The only way to do great work is to love what you do.",
-      "Life is what happens when you're busy making other plans.",
-      "Get busy living or get busy dying.",
-      "To be or not to be that is the question.",
-      "Success is not final failure is not fatal.",
-      "In the middle of difficulty lies opportunity.",
-      "Keep your face always toward the sunshine and shadows will fall behind you.",
-      "The journey of a thousand miles begins with one step.",
-      "Believe you can and you are halfway there.",
-      "It does not matter how slowly you go as long as you do not stop."
-    ],
-    story: [
-      "Once upon a time in a land far away there was a kingdom where magic was real. Every child born in this kingdom was gifted with a unique power. Some could control fire others could talk to animals. The young prince however seemed to have no power at all.",
-      "The rapid advancement of artificial intelligence has transformed many industries. Machines can now learn perform complex tasks and even create art. While some fear this change others embrace the possibilities it brings for a more efficient future.",
-      "Space exploration has always fascinated humanity. Looking up at the stars we wonder if we are alone in the universe. Missions to Mars and beyond are no longer just science fiction but tangible goals for the near future."
-    ]
+    subjects: ["A scientist","The president","A wild cat","The hero","An old writer","The robot","An adventurer","The detective","A fisherman","The king","A master chef","The student","An ancient dragon","A pianist","An astronaut","The village boy","A painter","The captain","A shadow ninja","A merchant"],
+    verbs: ["discovered","created","destroyed","analyzed","built","painted","wrote","observed","studied","designed","fixed","protected","attacked","guarded","searched for","bought","sold","hid","revealed","dreamed of"],
+    objects: ["an ancient book","a secret code","a beautiful song","a mysterious painting","the future","new technology","the lost city","a conspiracy","ancient history","a novel","a love poem","a math formula","the system","a golden bridge","a recipe","the forest","the ocean","a spaceship","hidden treasure","the truth"],
+    adverbs: ["quickly","carefully","bravely","eagerly","at midnight","secretly","wisely","suddenly","under moonlight","in the storm","meticulously","automatically","slowly","magically","endlessly"],
+    connectors: ["because","however","when","after","before","so that","although","while","thus","and then"],
+    openings: ["Once upon a time,","In a galaxy far away,","Deep in the jungle,","In the future,","Inside a lab,","Long ago,","Atop the mountain,","In the sea,"],
+    concepts: ["freedom","love","hope","truth","justice","destiny","time","dreams","reality","knowledge"],
+    vocab: ["the","be","to","of","and","a","in","that","have","i","it","for","not","on","with","he","as","you","do","at","this","but","his","by","from","they","we","say","her","she","or","an","will","my","one","all","would","there","their","what","so","up","out","if","about","who","get","which","go","me","when","make","can","like","time","no","just","him","know","take","people","into","year","your","good","some","could","them","see","other","than","then","now","look","only","come","its","over","think","also","back","after","use","two","how","our","work","first","well","way","even","new","want","because","any","these","give","day","most","us","life","world","own","down","should","call","come","know","get","give","make","think","look","use","find","tell","ask","work","seem","feel","try","leave","call"]
   }
 };
 
-/* --- SOUND ENGINE --- */
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playTone(type) {
-  if (!CONFIG.sound) return;
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  if (type === 'click') {
-    osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-  } else if (type === 'error') {
-    osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-  }
-}
-function toggleSound() {
-  CONFIG.sound = !CONFIG.sound;
-  document.getElementById('sound-toggle').innerText = CONFIG.sound ? "🔊 Sound On" : "🔇 Muted";
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+/* --- GENERATORS --- */
+function genSentence(lang) {
+  const d = CORPUS[lang];
+  const patterns = [
+    () => `${rand(d.subjects)} ${rand(d.verbs)} ${rand(d.objects)}.`,
+    () => `${rand(d.subjects)} ${rand(d.verbs)} ${rand(d.objects)} ${rand(d.adverbs)}.`,
+    () => `${rand(d.adverbs)}, ${rand(d.subjects)} ${rand(d.verbs)} ${rand(d.objects)}.`,
+    () => `${rand(d.subjects)} ${rand(d.verbs)} ${rand(d.objects)} ${rand(d.connectors)} ${rand(d.subjects).toLowerCase()} ${rand(d.verbs)} ${rand(d.objects)}.`
+  ];
+  let s = rand(patterns)();
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/* --- GENERATOR LOGIC --- */
-function generateContent() {
-  const src = DATA[CONFIG.lang];
-  let raw = [];
-
-  // 1. Fetch Base Content
-  if (CONFIG.mode === 'quotes') {
-    raw = src.quotes[Math.floor(Math.random() * src.quotes.length)].split(' ');
-  } else if (CONFIG.mode === 'story') {
-    raw = src.story[Math.floor(Math.random() * src.story.length)].split(' ');
+function genQuote(lang) {
+  const d = CORPUS[lang];
+  if (lang === 'id') {
+    const templates = [
+      () => `Kebahagiaan sejati adalah ketika kita ${rand(d.verbs)} ${rand(d.concepts)} dalam hidup.`,
+      () => `${rand(d.concepts)} bukanlah tujuan, melainkan cara kita ${rand(d.verbs)} ${rand(d.objects)}.`,
+      () => `Hanya ${rand(d.subjects)} yang tahu arti sebenarnya dari ${rand(d.concepts)}.`
+    ];
+    return rand(templates)();
   } else {
-    // Words, Numbers, Symbols
-    for(let i=0; i<60; i++) raw.push(src.words[Math.floor(Math.random() * src.words.length)]);
+    const templates = [
+      () => `True happiness is when we ${rand(d.verbs)} ${rand(d.concepts)} in life.`,
+      () => `${rand(d.concepts)} is not a destination, but how we ${rand(d.verbs)} ${rand(d.objects)}.`,
+      () => `Only ${rand(d.subjects).toLowerCase()} knows the true meaning of ${rand(d.concepts)}.`
+    ];
+    return rand(templates)();
   }
-
-  // 2. Apply Mode Logic (Numbers & Symbols)
-  if (CONFIG.mode === 'numbers') {
-    raw = raw.map(w => {
-      const r = Math.random();
-      if (r > 0.7) return w + Math.floor(Math.random() * 100); // word99
-      if (r > 0.4) return Math.floor(Math.random() * 2025) + w; // 2024word
-      if (r > 0.2) return w.replace(/[aioe]/g, m => ({'a':'4','i':'1','o':'0','e':'3'}[m])); // leet
-      return Math.floor(Math.random() * 10000).toString(); // pure number
-    });
-  } 
-  else if (CONFIG.mode === 'symbols') {
-    const syms = ['@','#','$','%','&','*','!','?','/','-','_','+','='];
-    raw = raw.map(w => {
-      const r = Math.random();
-      const s = syms[Math.floor(Math.random() * syms.length)];
-      if (r > 0.7) return s + w; // #word
-      if (r > 0.5) return w + s; // word!
-      if (r > 0.3) return `(${w})`; // (word)
-      if (r > 0.1) return `${w}@mail`; // simple email-like
-      return w.toUpperCase() + s + s; // WORD!!
-    });
-  }
-
-  // 3. Apply Difficulty (Transformations)
-  return raw.map(w => transformWord(w));
 }
 
-function transformWord(word) {
-  let w = word;
-  if (CONFIG.diff === 'easy') {
-    // Easy: Lowercase, alphanumeric only unless in symbol mode
-    if(CONFIG.mode !== 'symbols' && CONFIG.mode !== 'numbers') w = w.toLowerCase().replace(/[^a-z0-9]/gi, '');
-    else w = w.toLowerCase();
-  }
-  else if (CONFIG.diff === 'hard') {
-    if (Math.random() > 0.7) w = w.charAt(0).toUpperCase() + w.slice(1);
-    if (Math.random() > 0.85 && CONFIG.mode === 'words') w += [',','.','?','!'][Math.floor(Math.random()*4)];
-  }
-  else if (CONFIG.diff === 'hell') {
-    // Chaos casing
-    w = w.split('').map(c => Math.random()>0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
-    const extra = ['@','#','$','%','1','0','!'];
-    if (Math.random() > 0.7) w += extra[Math.floor(Math.random()*extra.length)];
-  }
-  return w;
+function genStory(lang) {
+  const d = CORPUS[lang];
+  const p1 = rand(d.openings);
+  const p2 = `${rand(d.subjects)} ${rand(d.verbs)} ${rand(d.objects)}`;
+  const p3 = rand(d.adverbs);
+  const p4 = rand(d.connectors);
+  const p5 = `${rand(d.subjects).toLowerCase()} ${rand(d.verbs)} ${rand(d.concepts)}.`;
+  return `${p1} ${p2.toLowerCase()} ${p3}. ${p4.charAt(0).toUpperCase() + p4.slice(1)} ${p5}`;
 }
 
-/* --- UI & GAME LOOP --- */
+function generateContent() {
+  const d = CORPUS[CFG.lang];
+  let arr = [];
+
+  if (CFG.mode === 'sentence') {
+    for(let i=0; i<5; i++) arr = arr.concat(genSentence(CFG.lang).split(' '));
+  }
+  else if (CFG.mode === 'quotes') {
+    for(let i=0; i<3; i++) arr = arr.concat(genQuote(CFG.lang).split(' '));
+  }
+  else if (CFG.mode === 'story') {
+    for(let i=0; i<3; i++) arr = arr.concat(genStory(CFG.lang).split(' '));
+  }
+  else if (CFG.mode === 'numbers') {
+    // MODE NUMBER: Kombinasi Kalimat + Angka
+    for(let i=0; i<5; i++) {
+       let sent = genSentence(CFG.lang).split(' ');
+       // Inject numbers into the sentence randomly
+       sent = sent.map(w => {
+         if (Math.random() > 0.65) {
+            // Replace word with a number context (Year, Amount, Code)
+            const rnd = Math.random();
+            if(rnd > 0.7) return Math.floor(Math.random() * 2025).toString(); // Year-like
+            if(rnd > 0.4) return (Math.floor(Math.random() * 10000) / 100).toFixed(2); // Decimal
+            return Math.floor(Math.random() * 100).toString(); // Simple int
+         }
+         return w;
+       });
+       arr = arr.concat(sent);
+    }
+  }
+  else if (CFG.mode === 'free') {
+    for(let i=0; i<100; i++) arr.push(rand(d.vocab));
+  }
+  else {
+    for(let i=0; i<80; i++) arr.push(rand(d.vocab));
+  }
+
+  // --- DIFFICULTY LOGIC ---
+  return arr.map(w => {
+    if (CFG.diff === 'easy') {
+      return w.toLowerCase().replace(/[^a-z0-9]/gi, '');
+    }
+    if (CFG.diff === 'normal') {
+      // Word mode: clean. Others: keep punctuation logic from generators
+      if (CFG.mode === 'words') {
+         if (Math.random() > 0.9) return w.charAt(0).toUpperCase() + w.slice(1);
+         return w.replace(/[^a-zA-Z0-9]/g, '');
+      }
+      return w;
+    }
+    if (CFG.diff === 'hard') {
+      if (Math.random() > 0.4) w = w.charAt(0).toUpperCase() + w.slice(1);
+      if (Math.random() > 0.7) w += [',',';',':','-','?','!','.'][Math.floor(Math.random()*7)];
+      if (Math.random() > 0.9) w = `"${w}"`;
+      return w;
+    }
+    if (CFG.diff === 'hell') {
+      w = w.split('').map(c => Math.random()>0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
+      if (Math.random() > 0.6) w += ['#','@','!','1','='][Math.floor(Math.random()*5)];
+      return w;
+    }
+    return w;
+  });
+}
+
+/* --- RENDER & LOGIC --- */
 const area = document.getElementById('typing-area');
 const input = document.getElementById('hidden-input');
+const liveCvs = document.getElementById('live-chart');
+const liveCtx = liveCvs.getContext('2d');
 
-function renderGame() {
+function render() {
   area.innerHTML = '';
-  STATE.words.forEach((w) => {
-    const wSpan = document.createElement('div');
-    wSpan.className = 'word';
+  STATE.words.forEach(w => {
+    const wd = document.createElement('div'); wd.className = 'word';
     w.split('').forEach(c => {
-      const cSpan = document.createElement('span');
-      cSpan.className = 'char';
-      cSpan.innerText = c;
-      wSpan.appendChild(cSpan);
+      const sp = document.createElement('span'); sp.className = 'char'; sp.innerText = c; wd.appendChild(sp);
     });
-    area.appendChild(wSpan);
+    area.appendChild(wd);
   });
   updateCursor();
 }
 
 function updateCursor() {
-  document.querySelectorAll('.char.active').forEach(c => c.classList.remove('active'));
-  const wordEl = area.children[STATE.wordIndex];
-  if (wordEl) {
-    const charEl = wordEl.children[STATE.charIndex];
-    if (charEl) {
-      charEl.classList.add('active');
-      if (wordEl.offsetTop > area.scrollTop + 100) area.scrollTop = wordEl.offsetTop - 50;
-    } else {
-      if (wordEl.lastElementChild) wordEl.lastElementChild.classList.add('active'); 
+  document.querySelectorAll('.active').forEach(e => e.classList.remove('active'));
+  const wEl = area.children[STATE.wIdx];
+  if (wEl) {
+    const cEl = wEl.children[STATE.cIdx];
+    if (cEl) cEl.classList.add('active');
+    else if (wEl.lastElementChild) wEl.lastElementChild.classList.add('active'); 
+    if (wEl.offsetTop > area.scrollTop + 80) {
+      area.scrollTo({ top: wEl.offsetTop - 40, behavior: 'smooth' });
     }
   }
 }
 
-input.addEventListener('input', (e) => {
-  if (!STATE.active) startGame();
+input.addEventListener('input', e => {
+  if (!STATE.active) start();
   const val = input.value;
-  const currentWordStr = STATE.words[STATE.wordIndex];
-  const wordEl = area.children[STATE.wordIndex];
-  
-  if (!wordEl) return; 
+  const curWord = STATE.words[STATE.wIdx];
+  const wEl = area.children[STATE.wIdx];
+  if (!wEl) return;
 
   if (e.data === ' ' || val.endsWith(' ')) {
     e.preventDefault();
-    if (STATE.charIndex > 0) {
-      if (STATE.charIndex < currentWordStr.length) {
-        for(let i=STATE.charIndex; i<currentWordStr.length; i++){
-          wordEl.children[i].classList.add('incorrect');
-          STATE.incorrect++;
-        }
+    if (STATE.cIdx > 0) {
+      for(let i=STATE.cIdx; i<curWord.length; i++) {
+        wEl.children[i].classList.add('incorrect'); STATE.incorr++;
       }
-      STATE.wordIndex++;
-      STATE.charIndex = 0;
-      input.value = '';
-      if (STATE.wordIndex >= STATE.words.length - 10) {
-        const newWords = generateContent();
-        STATE.words.push(...newWords);
-        renderNewWords(newWords);
+      STATE.wIdx++; STATE.cIdx = 0; input.value = '';
+      if (STATE.wIdx > STATE.words.length - 15) {
+        const newW = generateContent();
+        STATE.words.push(...newW);
+        newW.forEach(w => {
+            const wd = document.createElement('div'); wd.className = 'word';
+            w.split('').forEach(c => { const sp = document.createElement('span'); sp.className = 'char'; sp.innerText = c; wd.appendChild(sp); });
+            area.appendChild(wd);
+        });
       }
-    } else { input.value = ''; }
+    } else input.value = '';
   } else {
     if (e.inputType === 'deleteContentBackward') {
-      if (STATE.charIndex > 0) {
-        STATE.charIndex--;
-        wordEl.children[STATE.charIndex].className = 'char';
-      }
+      if (STATE.cIdx > 0) { STATE.cIdx--; wEl.children[STATE.cIdx].className = 'char'; }
     } else {
-      const charToMatch = currentWordStr[STATE.charIndex];
-      const typedChar = val.slice(-1);
-      if (STATE.charIndex < currentWordStr.length) {
-        const charEl = wordEl.children[STATE.charIndex];
-        if (typedChar === charToMatch) {
-          charEl.classList.add('correct');
-          playTone('click');
-          STATE.correct++;
-        } else {
-          charEl.classList.add('incorrect');
-          playTone('error');
-          STATE.incorrect++;
-        }
-        STATE.charIndex++;
-      } else {
-        playTone('error');
-        STATE.incorrect++;
-      }
+      const typed = val.slice(-1);
+      const target = curWord[STATE.cIdx];
+      if (STATE.cIdx < curWord.length) {
+        const span = wEl.children[STATE.cIdx];
+        if (typed === target) { span.classList.add('correct'); STATE.corr++; playTone('click'); }
+        else { span.classList.add('incorrect'); STATE.incorr++; playTone('error'); }
+        STATE.cIdx++;
+      } else { STATE.incorr++; playTone('error'); }
     }
   }
   updateCursor();
 });
 
-function renderNewWords(newArr) {
-  newArr.forEach(w => {
-    const wSpan = document.createElement('div');
-    wSpan.className = 'word';
-    w.split('').forEach(c => {
-      const cSpan = document.createElement('span');
-      cSpan.className = 'char';
-      cSpan.innerText = c;
-      wSpan.appendChild(cSpan);
-    });
-    area.appendChild(wSpan);
-  });
-}
-
-/* --- TIMER & SYSTEM --- */
-function startGame() {
-  STATE.active = true;
-  STATE.startTime = Date.now();
-  document.getElementById('live-wpm').classList.add('show');
-  let timePassed = 0;
+function start() {
+  STATE.active = true; STATE.wpmLog = [];
+  if (CFG.mode === 'free') { document.body.classList.add('free-mode'); input.focus(); return; }
+  
+  document.getElementById('live-bg-wpm').classList.add('show');
+  let elapsed = 0;
   STATE.timer = setInterval(() => {
-    timePassed++;
-    if (CONFIG.time === 'inf') {
-      document.getElementById('timer-display').innerText = timePassed + 's';
-    } else {
-      const left = CONFIG.time - timePassed;
-      document.getElementById('timer-display').innerText = left + 's';
-      if (left <= 0) finishGame();
+    elapsed++;
+    if (CFG.time === 'inf') document.getElementById('timer-disp').innerText = elapsed + 's';
+    else {
+      const left = CFG.time - elapsed;
+      document.getElementById('timer-disp').innerText = left + 's';
+      if (left <= 0) finish(elapsed);
     }
-    STATE.wpmHistory.push(calculateWPM(timePassed));
-    document.getElementById('live-wpm').innerText = calculateWPM(timePassed);
+    const wpm = Math.round((STATE.corr / 5) / (elapsed/60)) || 0;
+    STATE.wpmLog.push(wpm);
+    document.getElementById('live-bg-wpm').innerText = wpm;
+    drawChart(liveCtx, STATE.wpmLog, liveCvs.width, liveCvs.height);
   }, 1000);
 }
 
-function calculateWPM(secs) {
-  const mins = secs / 60;
-  if (mins === 0) return 0;
-  return Math.max(0, Math.round((STATE.correct / 5) / mins));
+function drawChart(ctx, data, w, h) {
+  ctx.clearRect(0,0,w,h); if (data.length < 2) return;
+  const max = Math.max(...data, 60) * 1.2;
+  const step = w / Math.max(CFG.time === 'inf' ? data.length : CFG.time, data.length);
+  ctx.beginPath(); ctx.moveTo(0, h);
+  data.forEach((v, i) => ctx.lineTo(i*step, h - (v/max*h)));
+  const style = getComputedStyle(document.body);
+  ctx.strokeStyle = style.getPropertyValue('--chart-line').trim();
+  ctx.lineWidth = 2; ctx.stroke();
+  ctx.lineTo((data.length-1)*step, h);
+  ctx.fillStyle = style.getPropertyValue('--chart-fill').trim();
+  ctx.fill();
 }
 
-function finishGame() {
-  clearInterval(STATE.timer);
-  STATE.active = false;
-  document.getElementById('live-wpm').classList.remove('show');
-  input.blur();
-  const timeSpent = CONFIG.time === 'inf' ? STATE.wpmHistory.length : CONFIG.time;
-  const wpm = calculateWPM(timeSpent);
-  const acc = Math.round((STATE.correct / (STATE.correct + STATE.incorrect || 1)) * 100);
+function finish(timeSpent) {
+  clearInterval(STATE.timer); STATE.active = false; input.blur();
+  document.getElementById('live-bg-wpm').classList.remove('show');
+  const wpm = Math.round((STATE.corr / 5) / (timeSpent/60)) || 0;
+  const acc = Math.round((STATE.corr / (STATE.corr + STATE.incorr || 1)) * 100);
+  const raw = Math.round(((STATE.corr+STATE.incorr)/5)/(timeSpent/60)) || 0;
   document.getElementById('res-wpm').innerText = wpm;
   document.getElementById('res-acc').innerText = acc + '%';
-  document.getElementById('res-char').innerText = `${STATE.correct}/${STATE.incorrect}`;
+  document.getElementById('res-raw').innerText = raw;
   document.getElementById('res-time').innerText = timeSpent + 's';
-  drawChart(STATE.wpmHistory);
+  const resCvs = document.getElementById('res-chart');
+  resCvs.width = resCvs.offsetWidth; resCvs.height = resCvs.offsetHeight;
+  drawChart(resCvs.getContext('2d'), STATE.wpmLog, resCvs.width, resCvs.height);
   document.getElementById('modal').classList.add('show');
 }
 
 function restartGame() {
-  closeModal();
-  clearInterval(STATE.timer);
-  STATE.active = false; STATE.wordIndex = 0; STATE.charIndex = 0; STATE.correct = 0; STATE.incorrect = 0; STATE.wpmHistory = [];
-  input.value = '';
-  STATE.words = generateContent();
-  renderGame();
-  document.getElementById('timer-display').innerText = CONFIG.time === 'inf' ? '∞' : CONFIG.time + 's';
-  document.getElementById('live-wpm').innerText = '0';
-  area.scrollTop = 0; input.focus();
+  document.getElementById('modal').classList.remove('show');
+  document.body.classList.remove('free-mode');
+  clearInterval(STATE.timer); STATE.active = false; 
+  STATE.wIdx = 0; STATE.cIdx = 0; STATE.corr = 0; STATE.incorr = 0; STATE.wpmLog = [];
+  input.value = ''; STATE.words = generateContent(); render();
+  document.getElementById('timer-disp').innerText = CFG.time === 'inf' ? '∞' : CFG.time + 's';
+  document.getElementById('live-bg-wpm').innerText = '0';
+  liveCtx.clearRect(0,0,liveCvs.width, liveCvs.height);
+  area.scrollTop = 0; focusInput();
 }
 
+/* --- UTILS --- */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(type) {
+  if (!CFG.sound) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === 'click') {
+    osc.type = 'sine'; osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(400, t + 0.08);
+    gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    osc.start(t); osc.stop(t + 0.08);
+  } else {
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t);
+    gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0.001, t + 0.1);
+    osc.start(t); osc.stop(t + 0.1);
+  }
+}
+function focusInput() { document.getElementById('hidden-input').focus(); }
 function toggleTheme() {
-  const body = document.body;
-  body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  document.getElementById('theme-toggle').innerText = body.getAttribute('data-theme') === 'dark' ? '🌙 Dark' : '☀️ Light';
+  const b = document.body; b.setAttribute('data-theme', b.getAttribute('data-theme')==='dark'?'light':'dark');
+  document.getElementById('theme-btn').innerText = b.getAttribute('data-theme')==='dark'?'🌙':'☀️';
 }
-
-function setMode(m) { CONFIG.mode = m; updateBtns('mode-sel', m); restartGame(); }
-function setDiff(d) { CONFIG.diff = d; updateBtns('diff-sel', d); restartGame(); }
-function setLang(l) { CONFIG.lang = l; document.querySelectorAll('#lang-id, #lang-en').forEach(b=>b.classList.remove('active')); document.getElementById(`lang-${l}`).classList.add('active'); restartGame(); }
+function toggleSound() { CFG.sound = !CFG.sound; document.getElementById('sound-btn').innerText = CFG.sound?'🔊':'🔇'; }
+function setMode(m) { CFG.mode = m; updBtn('mode-sel', m); restartGame(); }
+function setDiff(d) { CFG.diff = d; updBtn('diff-sel', d); restartGame(); }
+function setLang(l) { CFG.lang = l; document.querySelectorAll('#lang-id, #lang-en').forEach(b=>b.classList.remove('active')); document.getElementById(`lang-${l}`).classList.add('active'); restartGame(); }
 function setTime(t) {
-  document.getElementById('custom-time-input').classList.remove('show');
-  if (t === 'custom') { document.getElementById('custom-time-input').classList.add('show'); document.getElementById('custom-time-input').focus(); return; }
-  CONFIG.time = t; updateBtns('time-sel', t); document.getElementById('timer-display').innerText = t === 'inf' ? '∞' : t + 's'; restartGame();
+  const inp = document.getElementById('custom-time-input'); inp.classList.remove('show');
+  if (t === 'custom') { inp.classList.add('show'); inp.focus(); return; }
+  CFG.time = t; updBtn('time-sel', t); 
+  document.getElementById('timer-disp').innerText = t === 'inf' ? '∞' : t + 's'; restartGame();
 }
-function applyCustomTime(val) { const t = parseInt(val); if (t>0) { CONFIG.time = t; restartGame(); } }
-function updateBtns(gid, val) {
-  const c = document.getElementById(gid);
-  Array.from(c.children).forEach(b => b.tagName==='BUTTON' && b.classList.remove('active'));
-  Array.from(c.children).forEach(b => { if(b.getAttribute('onclick')?.includes(`'${val}'`) || b.innerText==val || (val==='inf'&&b.innerText=='∞')) b.classList.add('active'); });
+function applyCustomTime(v) { const t = parseInt(v); if(t>0) { CFG.time = t; restartGame(); } }
+function updBtn(id, v) {
+  const g = document.getElementById(id);
+  Array.from(g.children).forEach(b => { if(b.tagName==='BUTTON') b.classList.remove('active'); });
+  Array.from(g.children).forEach(b => { if(b.innerText.toLowerCase()===v || b.getAttribute('data-val')===v || (v==='inf'&&b.innerText==='∞')) b.classList.add('active'); });
 }
-function closeModal() { document.getElementById('modal').classList.remove('show'); input.focus(); }
+function closeModal() { document.getElementById('modal').classList.remove('show'); focusInput(); }
+document.addEventListener('keydown', e => { 
+  if(e.key==='Tab'){e.preventDefault(); restartGame();} 
+  if(e.key==='Escape'){ restartGame(); }
+});
 
-function drawChart(data) {
-  const cvs = document.getElementById('wpm-chart'); const ctx = cvs.getContext('2d');
-  const w = cvs.width = cvs.offsetWidth; const h = cvs.height = cvs.offsetHeight;
-  ctx.clearRect(0, 0, w, h); if (data.length < 1) return;
-  const max = Math.max(...data, 10); const step = w / (data.length - 1);
-  ctx.beginPath(); ctx.moveTo(0, h - (data[0] / max * h));
-  data.forEach((val, i) => ctx.lineTo(i * step, h - (val / max * (h - 20)) - 10));
-  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--primary'); ctx.lineWidth = 3; ctx.stroke();
-}
-
-document.addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); restartGame(); } });
-STATE.words = generateContent(); renderGame();
+// Init
+liveCvs.width = liveCvs.offsetWidth; liveCvs.height = liveCvs.offsetHeight;
+STATE.words = generateContent(); render(); focusInput();
 </script>
 </body>
 </html>
