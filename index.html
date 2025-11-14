@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>⌨️ StadianType — Ultimate</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Dark Theme (Default) */
+      --bg: #121212;
+      --glass: rgba(30, 30, 30, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-main: #e0e0e0; 
+      --text-sub: #5c5c5c;
+      --primary: #fca311;
+      --correct: #e0e0e0;
+      --incorrect: #ff4d4d;
+      --cursor: #fca311;
+      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f2f5;
+      --glass: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(0, 0, 0, 0.05);
+      --text-main: #1a1a1a;
+      --text-sub: #a0a0a0;
+      --primary: #2563eb;
+      --correct: #1a1a1a;
+      --incorrect: #dc2626;
+      --cursor: #2563eb;
+      --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    }
+
+    * { box-sizing: border-box; transition: background 0.3s, color 0.2s; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      margin: 0; height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: ''; position: absolute; top: -10%; left: -10%; width: 40vw; height: 40vw;
+      background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+      opacity: 0.1; z-index: -1; pointer-events: none; filter: blur(50px);
+    }
+
+    header {
+      width: 100%; max-width: 1000px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 30px; padding: 0 20px;
+    }
+    .brand { font-size: 24px; font-weight: 800; display: flex; gap: 10px; align-items: center; }
+    .brand span { color: var(--primary); }
+    
+    .controls {
+      background: var(--glass); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      padding: 10px 20px; border-radius: 12px;
+      display: flex; flex-wrap: wrap; gap: 15px;
+      box-shadow: var(--shadow); margin-bottom: 40px;
+    }
+
+    .group { display: flex; gap: 5px; align-items: center; }
+    .divider { width: 1px; height: 20px; background: var(--text-sub); opacity: 0.3; margin: 0 5px; }
+
+    button {
+      background: transparent; border: none; color: var(--text-sub);
+      font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; padding: 5px 10px; border-radius: 6px;
+    }
+    button:hover { color: var(--text-main); }
+    button.active { color: var(--bg); background: var(--primary); }
+    button[data-val="hell"].active { background: #8b0000; color: white; box-shadow: 0 0 10px #ff0000; }
+
+    #typing-area {
+      font-family: 'JetBrains Mono', monospace; font-size: 26px; line-height: 1.6;
+      width: 100%; max-width: 1000px; height: 180px;
+      overflow: hidden; position: relative; outline: none;
+      color: var(--text-sub); cursor: text;
+      mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    }
+
+    .word { display: inline-block; margin-right: 12px; margin-bottom: 8px; }
+    .char { position: relative; }
+    .char.correct { color: var(--correct); }
+    .char.incorrect { color: var(--incorrect); border-bottom: 2px solid var(--incorrect); }
+    .char.active::before {
+      content: ''; position: absolute; left: -2px; top: 2px; bottom: 2px;
+      width: 3px; background: var(--cursor); border-radius: 2px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    #hidden-input { position: absolute; opacity: 0; pointer-events: none; }
+    #custom-time-input {
+      background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+      color: var(--text-main); width: 50px; border-radius: 4px; padding: 4px; display: none;
+    }
+    #custom-time-input.show { display: block; }
+
+    .live-stats {
+      font-size: 40px; font-weight: 700; color: var(--primary);
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    }
+    .live-stats.show { opacity: 0.05; }
+
+    footer { margin-top: auto; margin-bottom: 20px; color: var(--text-sub); font-size: 12px; display: flex; gap: 20px; }
+    .key-hint { background: var(--glass-border); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+    /* MODAL */
+    .modal-wrap {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+    }
+    .modal-wrap.show { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--bg); border: 1px solid var(--glass-border);
+      padding: 30px; border-radius: 20px; width: 90%; max-width: 600px;
+      text-align: center; box-shadow: var(--shadow); transform: scale(0.9); transition: transform 0.3s;
+    }
+    .modal-wrap.show .modal { transform: scale(1); }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+    .stat-box { background: var(--glass); padding: 15px; border-radius: 10px; }
+    .stat-val { font-size: 32px; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--text-sub); text-transform: uppercase; }
+    canvas { width: 100%; height: 100px; margin-top: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <header>
+    <div class="brand">
+      <span>⌨️</span> StadianType <span style="font-size: 12px; background: var(--primary); color: var(--bg); padding: 2px 6px; border-radius: 4px;">ULTIMATE</span>
+    </div>
+    <div>
+      <button id="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+      <button id="sound-toggle" onclick="toggleSound()">🔊 Sound On</button>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="group" id="mode-sel">
+      <button class="active" onclick="setMode('words')">Words</button>
+      <button onclick="setMode('quotes')">Quotes</button>
+      <button onclick="setMode('story')">Story</button>
+      <button onclick="setMode('numbers')">Numbers</button>
+      <button onclick="setMode('symbols')">Symbols</button>
+    </div>
+    
+    <div class="divider"></div>
+
+    <div class="group" id="diff-sel">
+      <button class="active" onclick="setDiff('easy')">Easy</button>
+      <button onclick="setDiff('normal')">Normal</button>
+      <button onclick="setDiff('hard')">Hard</button>
+      <button onclick="setDiff('hell')" data-val="hell">HELL 🔥</button>
+    </div>
+
+    <div class="divider"></div>
+    
+    <div class="group">
+      <button onclick="setLang('id')" id="lang-id" class="active">ID</button>
+      <button onclick="setLang('en')" id="lang-en">EN</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="group" id="time-sel">
+      <button onclick="setTime(15)">15</button>
+      <button class="active" onclick="setTime(30)">30</button>
+      <button onclick="setTime(60)">60</button>
+      <button onclick="setTime('custom')">Custom</button>
+      <button onclick="setTime('inf')">∞</button>
+      <input type="number" id="custom-time-input" placeholder="Sec" min="1" max="999" onchange="applyCustomTime(this.value)">
+    </div>
+  </div>
+
+  <div class="live-stats" id="live-wpm">0</div>
+  <div id="typing-area" tabindex="0" onclick="document.getElementById('hidden-input').focus()"></div>
+  <input type="text" id="hidden-input" autocomplete="off">
+
+  <footer>
+    <div><span class="key-hint">tab</span> restart</div>
+    <div><span class="key-hint">esc</span> menu</div>
+    <div id="timer-display" style="color:var(--primary); font-weight:bold">30s</div>
+  </footer>
+
+  <div class="modal-wrap" id="modal">
+    <div class="modal">
+      <h2 style="margin:0 0 10px;">Result</h2>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-label">WPM</div><div class="stat-val" id="res-wpm">0</div></div>
+        <div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-val" id="res-acc">0%</div></div>
+        <div class="stat-box"><div class="stat-label">Characters</div><div class="stat-val" id="res-char" style="font-size:24px;">0/0</div></div>
+        <div class="stat-box"><div class="stat-label">Time</div><div class="stat-val" id="res-time" style="font-size:24px;">30s</div></div>
+      </div>
+      <div style="height:100px;"><canvas id="wpm-chart"></canvas></div>
+      <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+        <button class="active" onclick="restartGame()" style="padding:10px 30px;">Next Test ➜</button>
+        <button onclick="closeModal()" style="border:1px solid var(--text-sub);">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* --- CONFIG & STATE --- */
+const CONFIG = { mode: 'words', diff: 'easy', lang: 'id', time: 30, sound: true };
+const STATE = { active: false, words: [], wordIndex: 0, charIndex: 0, correct: 0, incorrect: 0, startTime: 0, timer: null, wpmHistory: [], customTime: 0 };
+
+/* --- DATABASE KATA YANG DIPERLUAS --- */
+const DATA = {
+  id: {
+    words: [
+      "aku", "kamu", "dia", "mereka", "kita", "pergi", "makan", "minum", "tidur", "jalan", "lari", "baca", "tulis", "kerja", "rumah", "sekolah", "pasar", "buku", "pena", "meja", "kursi", "lampu", "pintu", "jendela", "mobil", "motor", "sepeda", "hari", "bulan", "tahun", "pagi", "siang", "malam", "cepat", "lambat", "besar", "kecil", "panas", "dingin", "merah", "biru", "hijau", "kuning", "hitam", "putih", "suka", "cinta", "benci", "rindu", "harap", "mimpi", "nyata", "teknologi", "komputer", "internet", "jaringan", "sistem", "aplikasi", "data", "informasi", "digital", "koneksi", "server", "program", "algoritma", "logika", "bahasa", "indonesia", "budaya", "seni", "musik", "lagu", "nada", "suara", "gambar", "warna", "bentuk", "ruang", "waktu", "dunia", "bumi", "langit", "bintang", "matahari", "bulan", "planet", "galaksi", "semesta", "alam", "hutan", "laut", "gunung", "sungai", "danau", "pantai", "pasir", "batu", "tanah", "udara", "angin", "hujan", "badai", "petir", "api", "cahaya", "gelap", "bayang", "cermin", "kaca", "besi", "emas", "perak", "uang", "harga", "nilai", "modal", "untung", "rugi", "bisnis", "ekonomi", "politik", "hukum", "adil", "jujur", "benar", "salah", "baik", "buruk", "indah", "jelek", "kuat", "lemah", "sehat", "sakit", "hidup", "mati"
+    ],
+    quotes: [
+      "Sedikit demi sedikit lama-lama menjadi bukit.",
+      "Berakit-rakit ke hulu berenang-renang ke tepian.",
+      "Gantungkan cita-citamu setinggi langit.",
+      "Kebersihan adalah sebagian dari iman.",
+      "Bhinneka Tunggal Ika berbeda-beda tetapi tetap satu.",
+      "Padi makin berisi makin merunduk.",
+      "Di mana bumi dipijak di situ langit dijunjung.",
+      "Tak ada gading yang tak retak.",
+      "Waktu adalah uang jadi jangan sia-siakan.",
+      "Buku adalah jendela dunia yang membuka wawasan.",
+      "Kegagalan adalah keberhasilan yang tertunda."
+    ],
+    story: [
+      "Di sebuah desa yang damai hiduplah seorang pemuda bernama Budi. Budi sangat gemar membaca buku di perpustakaan desa. Setiap sore ia menghabiskan waktu mempelajari ilmu baru dari berbagai belahan dunia. Suatu hari ia menemukan sebuah buku tua yang berisi peta harta karun.",
+      "Indonesia adalah negara kepulauan terbesar di dunia dengan ribuan pulau yang membentang dari Sabang sampai Merauke. Keindahan alamnya sangat memukau mulai dari pantai berpasir putih hingga pegunungan yang menjulang tinggi. Kekayaan budaya dan keramahan penduduknya membuat siapa saja betah.",
+      "Teknologi berkembang sangat pesat dalam satu dekade terakhir. Kini hampir semua orang memiliki ponsel pintar yang terhubung ke internet. Informasi dapat diakses dengan cepat dan mudah dari mana saja. Namun kemajuan ini juga membawa tantangan baru bagi keamanan privasi."
+    ]
+  },
+  en: {
+    words: [
+      "the", "be", "to", "of", "and", "a", "in", "that", "have", "i", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us", "computer", "system", "coding", "program", "network", "data", "cloud", "server", "client", "web", "internet", "browser", "screen", "keyboard", "mouse", "input", "output", "logic", "design", "create", "build", "develop", "test", "debug", "deploy", "user", "experience", "interface", "digital", "virtual", "reality", "future", "modern", "classic", "simple", "complex", "fast", "slow", "hard", "easy", "learn", "study", "school", "office", "home"
+    ],
+    quotes: [
+      "The only way to do great work is to love what you do.",
+      "Life is what happens when you're busy making other plans.",
+      "Get busy living or get busy dying.",
+      "To be or not to be that is the question.",
+      "Success is not final failure is not fatal.",
+      "In the middle of difficulty lies opportunity.",
+      "Keep your face always toward the sunshine and shadows will fall behind you.",
+      "The journey of a thousand miles begins with one step.",
+      "Believe you can and you are halfway there.",
+      "It does not matter how slowly you go as long as you do not stop."
+    ],
+    story: [
+      "Once upon a time in a land far away there was a kingdom where magic was real. Every child born in this kingdom was gifted with a unique power. Some could control fire others could talk to animals. The young prince however seemed to have no power at all.",
+      "The rapid advancement of artificial intelligence has transformed many industries. Machines can now learn perform complex tasks and even create art. While some fear this change others embrace the possibilities it brings for a more efficient future.",
+      "Space exploration has always fascinated humanity. Looking up at the stars we wonder if we are alone in the universe. Missions to Mars and beyond are no longer just science fiction but tangible goals for the near future."
+    ]
+  }
+};
+
+/* --- SOUND ENGINE --- */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(type) {
+  if (!CONFIG.sound) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  if (type === 'click') {
+    osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+  } else if (type === 'error') {
+    osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+}
+function toggleSound() {
+  CONFIG.sound = !CONFIG.sound;
+  document.getElementById('sound-toggle').innerText = CONFIG.sound ? "🔊 Sound On" : "🔇 Muted";
+}
+
+/* --- GENERATOR LOGIC --- */
+function generateContent() {
+  const src = DATA[CONFIG.lang];
+  let raw = [];
+
+  // 1. Fetch Base Content
+  if (CONFIG.mode === 'quotes') {
+    raw = src.quotes[Math.floor(Math.random() * src.quotes.length)].split(' ');
+  } else if (CONFIG.mode === 'story') {
+    raw = src.story[Math.floor(Math.random() * src.story.length)].split(' ');
+  } else {
+    // Words, Numbers, Symbols
+    for(let i=0; i<60; i++) raw.push(src.words[Math.floor(Math.random() * src.words.length)]);
+  }
+
+  // 2. Apply Mode Logic (Numbers & Symbols)
+  if (CONFIG.mode === 'numbers') {
+    raw = raw.map(w => {
+      const r = Math.random();
+      if (r > 0.7) return w + Math.floor(Math.random() * 100); // word99
+      if (r > 0.4) return Math.floor(Math.random() * 2025) + w; // 2024word
+      if (r > 0.2) return w.replace(/[aioe]/g, m => ({'a':'4','i':'1','o':'0','e':'3'}[m])); // leet
+      return Math.floor(Math.random() * 10000).toString(); // pure number
+    });
+  } 
+  else if (CONFIG.mode === 'symbols') {
+    const syms = ['@','#','$','%','&','*','!','?','/','-','_','+','='];
+    raw = raw.map(w => {
+      const r = Math.random();
+      const s = syms[Math.floor(Math.random() * syms.length)];
+      if (r > 0.7) return s + w; // #word
+      if (r > 0.5) return w + s; // word!
+      if (r > 0.3) return `(${w})`; // (word)
+      if (r > 0.1) return `${w}@mail`; // simple email-like
+      return w.toUpperCase() + s + s; // WORD!!
+    });
+  }
+
+  // 3. Apply Difficulty (Transformations)
+  return raw.map(w => transformWord(w));
+}
+
+function transformWord(word) {
+  let w = word;
+  if (CONFIG.diff === 'easy') {
+    // Easy: Lowercase, alphanumeric only unless in symbol mode
+    if(CONFIG.mode !== 'symbols' && CONFIG.mode !== 'numbers') w = w.toLowerCase().replace(/[^a-z0-9]/gi, '');
+    else w = w.toLowerCase();
+  }
+  else if (CONFIG.diff === 'hard') {
+    if (Math.random() > 0.7) w = w.charAt(0).toUpperCase() + w.slice(1);
+    if (Math.random() > 0.85 && CONFIG.mode === 'words') w += [',','.','?','!'][Math.floor(Math.random()*4)];
+  }
+  else if (CONFIG.diff === 'hell') {
+    // Chaos casing
+    w = w.split('').map(c => Math.random()>0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
+    const extra = ['@','#','$','%','1','0','!'];
+    if (Math.random() > 0.7) w += extra[Math.floor(Math.random()*extra.length)];
+  }
+  return w;
+}
+
+/* --- UI & GAME LOOP --- */
+const area = document.getElementById('typing-area');
+const input = document.getElementById('hidden-input');
+
+function renderGame() {
+  area.innerHTML = '';
+  STATE.words.forEach((w) => {
+    const wSpan = document.createElement('div');
+    wSpan.className = 'word';
+    w.split('').forEach(c => {
+      const cSpan = document.createElement('span');
+      cSpan.className = 'char';
+      cSpan.innerText = c;
+      wSpan.appendChild(cSpan);
+    });
+    area.appendChild(wSpan);
+  });
+  updateCursor();
+}
+
+function updateCursor() {
+  document.querySelectorAll('.char.active').forEach(c => c.classList.remove('active'));
+  const wordEl = area.children[STATE.wordIndex];
+  if (wordEl) {
+    const charEl = wordEl.children[STATE.charIndex];
+    if (charEl) {
+      charEl.classList.add('active');
+      if (wordEl.offsetTop > area.scrollTop + 100) area.scrollTop = wordEl.offsetTop - 50;
+    } else {
+      if (wordEl.lastElementChild) wordEl.lastElementChild.classList.add('active'); 
+    }
+  }
+}
+
+input.addEventListener('input', (e) => {
+  if (!STATE.active) startGame();
+  const val = input.value;
+  const currentWordStr = STATE.words[STATE.wordIndex];
+  const wordEl = area.children[STATE.wordIndex];
+  
+  if (!wordEl) return; 
+
+  if (e.data === ' ' || val.endsWith(' ')) {
+    e.preventDefault();
+    if (STATE.charIndex > 0) {
+      if (STATE.charIndex < currentWordStr.length) {
+        for(let i=STATE.charIndex; i<currentWordStr.length; i++){
+          wordEl.children[i].classList.add('incorrect');
+          STATE.incorrect++;
+        }
+      }
+      STATE.wordIndex++;
+      STATE.charIndex = 0;
+      input.value = '';
+      if (STATE.wordIndex >= STATE.words.length - 10) {
+        const newWords = generateContent();
+        STATE.words.push(...newWords);
+        renderNewWords(newWords);
+      }
+    } else { input.value = ''; }
+  } else {
+    if (e.inputType === 'deleteContentBackward') {
+      if (STATE.charIndex > 0) {
+        STATE.charIndex--;
+        wordEl.children[STATE.charIndex].className = 'char';
+      }
+    } else {
+      const charToMatch = currentWordStr[STATE.charIndex];
+      const typedChar = val.slice(-1);
+      if (STATE.charIndex < currentWordStr.length) {
+        const charEl = wordEl.children[STATE.charIndex];
+        if (typedChar === charToMatch) {
+          charEl.classList.add('correct');
+          playTone('click');
+          STATE.correct++;
+        } else {
+          charEl.classList.add('incorrect');
+          playTone('error');
+          STATE.incorrect++;
+        }
+        STATE.charIndex++;
+      } else {
+        playTone('error');
+        STATE.incorrect++;
+      }
+    }
+  }
+  updateCursor();
+});
+
+function renderNewWords(newArr) {
+  newArr.forEach(w => {
+    const wSpan = document.createElement('div');
+    wSpan.className = 'word';
+    w.split('').forEach(c => {
+      const cSpan = document.createElement('span');
+      cSpan.className = 'char';
+      cSpan.innerText = c;
+      wSpan.appendChild(cSpan);
+    });
+    area.appendChild(wSpan);
+  });
+}
+
+/* --- TIMER & SYSTEM --- */
+function startGame() {
+  STATE.active = true;
+  STATE.startTime = Date.now();
+  document.getElementById('live-wpm').classList.add('show');
+  let timePassed = 0;
+  STATE.timer = setInterval(() => {
+    timePassed++;
+    if (CONFIG.time === 'inf') {
+      document.getElementById('timer-display').innerText = timePassed + 's';
+    } else {
+      const left = CONFIG.time - timePassed;
+      document.getElementById('timer-display').innerText = left + 's';
+      if (left <= 0) finishGame();
+    }
+    STATE.wpmHistory.push(calculateWPM(timePassed));
+    document.getElementById('live-wpm').innerText = calculateWPM(timePassed);
+  }, 1000);
+}
+
+function calculateWPM(secs) {
+  const mins = secs / 60;
+  if (mins === 0) return 0;
+  return Math.max(0, Math.round((STATE.correct / 5) / mins));
+}
+
+function finishGame() {
+  clearInterval(STATE.timer);
+  STATE.active = false;
+  document.getElementById('live-wpm').classList.remove('show');
+  input.blur();
+  const timeSpent = CONFIG.time === 'inf' ? STATE.wpmHistory.length : CONFIG.time;
+  const wpm = calculateWPM(timeSpent);
+  const acc = Math.round((STATE.correct / (STATE.correct + STATE.incorrect || 1)) * 100);
+  document.getElementById('res-wpm').innerText = wpm;
+  document.getElementById('res-acc').innerText = acc + '%';
+  document.getElementById('res-char').innerText = `${STATE.correct}/${STATE.incorrect}`;
+  document.getElementById('res-time').innerText = timeSpent + 's';
+  drawChart(STATE.wpmHistory);
+  document.getElementById('modal').classList.add('show');
+}
+
+function restartGame() {
+  closeModal();
+  clearInterval(STATE.timer);
+  STATE.active = false; STATE.wordIndex = 0; STATE.charIndex = 0; STATE.correct = 0; STATE.incorrect = 0; STATE.wpmHistory = [];
+  input.value = '';
+  STATE.words = generateContent();
+  renderGame();
+  document.getElementById('timer-display').innerText = CONFIG.time === 'inf' ? '∞' : CONFIG.time + 's';
+  document.getElementById('live-wpm').innerText = '0';
+  area.scrollTop = 0; input.focus();
+}
+
+function toggleTheme() {
+  const body = document.body;
+  body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  document.getElementById('theme-toggle').innerText = body.getAttribute('data-theme') === 'dark' ? '🌙 Dark' : '☀️ Light';
+}
+
+function setMode(m) { CONFIG.mode = m; updateBtns('mode-sel', m); restartGame(); }
+function setDiff(d) { CONFIG.diff = d; updateBtns('diff-sel', d); restartGame(); }
+function setLang(l) { CONFIG.lang = l; document.querySelectorAll('#lang-id, #lang-en').forEach(b=>b.classList.remove('active')); document.getElementById(`lang-${l}`).classList.add('active'); restartGame(); }
+function setTime(t) {
+  document.getElementById('custom-time-input').classList.remove('show');
+  if (t === 'custom') { document.getElementById('custom-time-input').classList.add('show'); document.getElementById('custom-time-input').focus(); return; }
+  CONFIG.time = t; updateBtns('time-sel', t); document.getElementById('timer-display').innerText = t === 'inf' ? '∞' : t + 's'; restartGame();
+}
+function applyCustomTime(val) { const t = parseInt(val); if (t>0) { CONFIG.time = t; restartGame(); } }
+function updateBtns(gid, val) {
+  const c = document.getElementById(gid);
+  Array.from(c.children).forEach(b => b.tagName==='BUTTON' && b.classList.remove('active'));
+  Array.from(c.children).forEach(b => { if(b.getAttribute('onclick')?.includes(`'${val}'`) || b.innerText==val || (val==='inf'&&b.innerText=='∞')) b.classList.add('active'); });
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); input.focus(); }
+
+function drawChart(data) {
+  const cvs = document.getElementById('wpm-chart'); const ctx = cvs.getContext('2d');
+  const w = cvs.width = cvs.offsetWidth; const h = cvs.height = cvs.offsetHeight;
+  ctx.clearRect(0, 0, w, h); if (data.length < 1) return;
+  const max = Math.max(...data, 10); const step = w / (data.length - 1);
+  ctx.beginPath(); ctx.moveTo(0, h - (data[0] / max * h));
+  data.forEach((val, i) => ctx.lineTo(i * step, h - (val / max * (h - 20)) - 10));
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--primary'); ctx.lineWidth = 3; ctx.stroke();
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); restartGame(); } });
+STATE.words = generateContent(); renderGame();
+</script>
+</body>
+</html>
